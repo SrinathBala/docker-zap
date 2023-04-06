@@ -31,6 +31,11 @@ export class DockerZapStack extends cdk.Stack {
       logging: ecs.LogDriver.awsLogs({ streamPrefix: 'my-container-logs' }),
     });
 
+    container.addPortMappings({
+      containerPort: 80,
+    });
+    
+
     // Create a service for the container
     const service = new ecs.FargateService(this, 'MyService', {
       cluster: cluster,
