@@ -1,9 +1,6 @@
 name: Push Docker image to ECR
 
-on:
-  push:
-    tags:
-      - 'v*'
+on: push
 
 jobs:
   push-to-ecr:
