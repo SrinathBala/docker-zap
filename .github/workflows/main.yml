@@ -4,32 +4,7 @@ on: push
 
 
 jobs:
-  push-to-ecr:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-region: eu-central-1
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-      - name: Build and push Docker image
-        env:
-          ECR_REGISTRY: demo-docker
-          IMAGE_NAME: flask_image
-          TAG: ${{ github.ref }}
-        run: |
-          cd src/
-          # Build the Docker image
-          docker build -t $ECR_REGISTRY/$IMAGE_NAME:$TAG .
-          # Log in to Amazon ECR
-          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
-          # Push the Docker image to Amazon ECR
-          docker push $ECR_REGISTRY/$IMAGE_NAME:$TAG
-
   DeployStack:
-    needs: push-to-ecr
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
