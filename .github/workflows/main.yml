@@ -1,48 +1,34 @@
-name: Deploy to Amazon ECS
+name: Push Docker image to ECR
 
 on:
   push:
-    branches:
-      - main
-
-env:
-  AWS_REGION: eu-central-1                   # set this to your preferred AWS region, e.g. us-west-1
-  ECR_REPOSITORY: demo-docker           # set this to your Amazon ECR repository name
-  ECS_SERVICE: service-demo                 # set this to your Amazon ECS service name
-  ECS_CLUSTER: demo-docker                 # set this to your Amazon ECS cluster name
-  CONTAINER_NAME: demo           # set this to the name of the container in the
-                                               # containerDefinitions section of your task definition
+    tags:
+      - 'v*'
 
 jobs:
-  build: 
-    name: Build
+  push-to-ecr:
     runs-on: ubuntu-latest
-    environment: production
     steps:
-
-      - name: Check out code
-        uses: actions/checkout@v2
-
+      - uses: actions/checkout@v2
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
+          aws-region: <your-AWS-region>
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: eu-central-1
-
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
-
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and push Docker image
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: demo-docker
-          IMAGE_TAG: flask_image
+          ECR_REGISTRY: demo-docker
+          IMAGE_NAME: flask_image
+          TAG: ${{ github.ref }}
         run: |
           cd src/
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          # Build the Docker image
+          docker build -t $ECR_REGISTRY/$IMAGE_NAME:$TAG .
+          # Log in to Amazon ECR
+          aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+          # Push the Docker image to Amazon ECR
+          docker push $ECR_REGISTRY/$IMAGE_NAME:$TAG
 
   DeployStack:
     needs: build
