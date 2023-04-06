@@ -29,7 +29,7 @@ jobs:
           docker push $ECR_REGISTRY/$IMAGE_NAME:$TAG
 
   DeployStack:
-    needs: build
+    needs: push-to-ecr
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
