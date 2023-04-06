@@ -26,7 +26,7 @@ export class DockerZapStack extends cdk.Stack {
 
     // Add a container to the task definition
     const container = taskDefinition.addContainer('MyContainer', {
-      image: ecs.ContainerImage.fromRegistry('demo-docker/flask_image'),
+      image: ecs.ContainerImage.fromRegistry('nginx'),
       memoryReservationMiB: 256,
       logging: ecs.LogDriver.awsLogs({ streamPrefix: 'my-container-logs' }),
     });
