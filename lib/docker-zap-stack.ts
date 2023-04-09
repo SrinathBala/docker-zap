@@ -4,6 +4,9 @@ import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
 import * as ecr from 'aws-cdk-lib/aws-ecr';
 import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
+import * as assets from 'aws-cdk-lib/aws-ecr-assets';
+
+import path = require('path');
 
 
 export class DockerZapStack extends cdk.Stack {
@@ -26,8 +29,8 @@ export class DockerZapStack extends cdk.Stack {
     });
 
     const asset = new ecr_assets.DockerImageAsset(this, 'flask_image', {
-      directory: './src',
-      target: ecrRepo.repositoryName
+      directory: path.join('./src'),
+      file: 'Dockerfile',
     });
 
     // Create a task definition for your container
@@ -38,7 +41,7 @@ export class DockerZapStack extends cdk.Stack {
 
     // Add a container to the task definition
     const container = taskDefinition.addContainer('MyContainer', {
-      image: ecs.ContainerImage.fromRegistry('nginx'),
+      image: ecs.ContainerImage.fromDockerImageAsset(asset),
       memoryReservationMiB: 256,
       logging: ecs.LogDriver.awsLogs({ streamPrefix: 'my-container-logs' }),
     });
