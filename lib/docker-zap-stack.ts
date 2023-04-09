@@ -2,6 +2,9 @@ import * as cdk from 'aws-cdk-lib';
 import * as ec2 from 'aws-cdk-lib/aws-ec2';
 import * as ecs from 'aws-cdk-lib/aws-ecs';
 import { Construct } from 'constructs';
+import * as ecr from 'aws-cdk-lib/aws-ecr';
+import * as ecr_assets from 'aws-cdk-lib/aws-ecr-assets';
+
 
 export class DockerZapStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -16,6 +19,15 @@ export class DockerZapStack extends cdk.Stack {
     const cluster = new ecs.Cluster(this, 'MyCluster', {
       vpc: vpc,
       containerInsights: true
+    });
+
+    const ecrRepo = new ecr.Repository(this, 'ECRRepo',{
+      repositoryName: 'demo-repo',
+    });
+
+    const asset = new ecr_assets.DockerImageAsset(this, 'flask_image', {
+      directory: './src',
+      target: ecrRepo.repositoryName
     });
 
     // Create a task definition for your container
@@ -34,6 +46,13 @@ export class DockerZapStack extends cdk.Stack {
     container.addPortMappings({
       containerPort: 80,
     });
+
+    const securityGroup = new ec2.SecurityGroup(this, 'SecurityGroup', {
+      vpc,
+      allowAllOutbound: true,
+    });
+    
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'allow HTTP traffic');
     
 
     // Create a service for the container
@@ -43,6 +62,7 @@ export class DockerZapStack extends cdk.Stack {
       desiredCount: 1,
       serviceName: 'my-service-name',
       assignPublicIp: true,
+      securityGroups: [securityGroup]
     });
   }
 }
