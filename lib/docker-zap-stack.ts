@@ -47,7 +47,7 @@ export class DockerZapStack extends cdk.Stack {
     });
 
     container.addPortMappings({
-      containerPort: 80,
+      containerPort: 443,
     });
 
     const securityGroup = new ec2.SecurityGroup(this, 'SecurityGroup', {
@@ -56,6 +56,8 @@ export class DockerZapStack extends cdk.Stack {
     });
 
     securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(80), 'allow HTTP traffic');
+
+    securityGroup.addIngressRule(ec2.Peer.anyIpv4(), ec2.Port.tcp(443), 'allow HTTPS traffic');
     
     
     // Create a service for the container
